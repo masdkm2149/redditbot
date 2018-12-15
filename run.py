@@ -11,10 +11,13 @@ def bot_login():
 				password = config.password,
 				client_id = config.client_id,
 				client_secret = config.client_secret,
-				user_agent = "Beep Boop")
+				user_agent = "The Reddit Commenter v1.0")
 	print("Logged in!")
 
 	return r
+
+def checkingvotes():
+    print("Checking votes.")
 
 def run_bot(r, comments_replied_to):
 	print("Searching last 1,000 comments")
@@ -35,8 +38,28 @@ def run_bot(r, comments_replied_to):
 
 	print(comments_replied_to)
 
+	get_karma()
+
 	print("Sleeping for 60 seconds...")
+	#Sleep for 10 seconds...
 	time.sleep(60)
+
+def get_karma():
+    user = r.user.me()
+    comment_list = user.comments.new(limit=20)
+    p_id = open("Parent_id.txt","a+")
+    for comment in comment_list:
+            if comment.score < -2:
+                parent_id = comment.parent_id
+                if parent_id not in p_id.read().split("\n"):
+                    parent_comment = r.comment(id=parent_id)
+                    body = comment.body
+                    comment.delete()
+                    parent_comment.reply(body)
+                    p_id.write(comment.parent_id + "\n")
+                    print("Comment reposted.")
+            else:
+                checkingvotes()
 
 def get_saved_comments():
 	if not os.path.isfile("comments_replied_to.txt"):
